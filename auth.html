@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArolX Pro - تسجيل الدخول وإنشاء الحساب</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: #020617; color: #f8fafc; margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .auth-container { background: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 30px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+        
+        .auth-logo { text-align: center; margin-bottom: 24px; }
+        .auth-logo h2 { margin: 0; color: #38bdf8; font-size: 22px; font-weight: 800; }
+        .auth-logo p { margin: 6px 0 0 0; color: #94a3b8; font-size: 12px; }
+
+        .auth-tabs { display: flex; background: #020617; border-radius: 12px; padding: 4px; margin-bottom: 20px; border: 1px solid #1e293b; }
+        .auth-tab-btn { flex: 1; background: none; border: none; padding: 10px; color: #94a3b8; font-weight: bold; font-size: 13px; cursor: pointer; border-radius: 10px; transition: 0.2s; }
+        .auth-tab-btn.active { background: #0284c7; color: #fff; }
+
+        .auth-form-section { display: none; }
+        .auth-form-section.active { display: block; }
+
+        .form-group { margin-bottom: 15px; text-align: right; }
+        .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px; font-weight: bold; }
+        .form-group input { width: 100%; background: #020617; border: 1px solid #334155; border-radius: 12px; padding: 12px; color: #fff; font-size: 13px; outline: none; transition: 0.2s; }
+        .form-group input:focus { border-color: #38bdf8; }
+        
+        .auth-submit-btn { width: 100%; background: #059669; color: #fff; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 14px; margin-top: 10px; transition: 0.2s; }
+        .auth-submit-btn:hover { background: #047857; }
+        .auth-submit-btn:disabled { background: #334155; cursor: wait; }
+
+        .auth-error-box { background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 10px; padding: 10px; color: #ef4444; font-size: 12px; text-align: center; margin-bottom: 15px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="auth-logo">
+            <h2>منصة ArolX Pro 🚀</h2>
+            <p>بوابة التداول الاحترافي والتراكمي</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button type="button" class="auth-tab-btn active" id="tabRegisterBtn" onclick="switchAuthMode('register')">حساب جديد</button>
+            <button type="button" class="auth-tab-btn" id="tabLoginBtn" onclick="switchAuthMode('login')">تسجيل الدخول</button>
+        </div>
+
+        <div id="authErrorMsg" class="auth-error-box"></div>
+
+        <!-- 1. نموذج إنشاء حساب جديد -->
+        <div id="registerSection" class="auth-form-section active">
+            <div class="form-group">
+                <label>الاسم الكامل</label>
+                <input type="text" id="regName" placeholder="الاسم الكامل...">
+            </div>
+            <div class="form-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" id="regEmail" placeholder="name@gmail.com">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور (6 أحرف أو أرقام على الأقل)</label>
+                <input type="password" id="regPassword" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label>رقم حساب الصديق الداعي أو الكود (إجباري 🚨)</label>
+                <input type="text" id="regReferral" placeholder="الصق كود أو رقم حساب الداعي هنا...">
+                <span style="font-size: 10px; color: #94a3b8; display: block; margin-top: 4px;">يمكنك لصق الكود كاملاً (مثل ARX-1000) وسيتم التعرف عليه.</span>
+            </div>
+            <button type="button" class="auth-submit-btn" id="regSubmitBtn" onclick="handleRegister()">إنشاء الحساب والانضمام ⚡</button>
+        </div>
+
+        <!-- 2. نموذج تسجيل الدخول -->
+        <div id="loginSection" class="auth-form-section">
+            <div class="form-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" id="loginEmail" placeholder="name@gmail.com">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" id="loginPassword" placeholder="••••••••">
+            </div>
+            <button type="button" class="auth-submit-btn" id="loginSubmitBtn" style="background: #0284c7;" onclick="handleLogin()">دخول المنصة 🚀</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDocs, collection, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyB7kCAWBjr_Pin9izKlkcTqA1GEEKGSZsA",
+          authDomain: "tradingapp-93608.firebaseapp.com",
+          projectId: "tradingapp-93608",
+          storageBucket: "tradingapp-93608.firebasestorage.app",
+          messagingSenderId: "1037136476622",
+          appId: "1:1037136476622:web:573988924b408bcef6539f",
+          measurementId: "G-3BSEMM7PDS"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.switchAuthMode = function(mode) {
+            const regSec = document.getElementById('registerSection');
+            const logSec = document.getElementById('loginSection');
+            const regBtn = document.getElementById('tabRegisterBtn');
+            const logBtn = document.getElementById('tabLoginBtn');
+            const errBox = document.getElementById('authErrorMsg');
+            errBox.style.display = 'none';
+
+            if(mode === 'register') {
+                regSec.classList.add('active');
+                logSec.classList.remove('active');
+                regBtn.classList.add('active');
+                logBtn.classList.remove('active');
+            } else {
+                logSec.classList.add('active');
+                regSec.classList.remove('active');
+                logBtn.classList.add('active');
+                regBtn.classList.remove('active');
+            }
+        };
+
+        function showError(msg) {
+            const errBox = document.getElementById('authErrorMsg');
+            errBox.textContent = msg;
+            errBox.style.display = 'block';
+        }
+
+        window.handleRegister = async function() {
+            const btn = document.getElementById('regSubmitBtn');
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+            const rawReferralText = document.getElementById('regReferral').value.trim();
+
+            document.getElementById('authErrorMsg').style.display = 'none';
+
+            if(!name || !email || !password || !rawReferralText) {
+                showError('❌ يرجى تعبئة كافة الحقول بما فيها كود أو رقم حساب الصديق الداعي!');
+                return;
+            }
+
+            if(password.length < 6) {
+                showError('❌ كلمة المرور يجب أن تكون 6 أحرف أو أرقام على الأقل!');
+                return;
+            }
+
+            const extractedNumbers = rawReferralText.replace(/\D/g, '');
+            if(!extractedNumbers) {
+                showError('❌ يرجى إدخال رقم حساب صحيح للداعي!');
+                return;
+            }
+
+            const targetUserNumber = parseInt(extractedNumbers, 10);
+
+            btn.disabled = true;
+            btn.textContent = "جاري التحقق وإنشاء الحساب... ⏳";
+
+            try {
+                // 1. إنشاء الحساب أولاً في Authentication لضمان صلاحية الوصول لقاعدة البيانات
+                const userCred = await createUserWithEmailAndPassword(auth, email, password);
+                const newUserUid = userCred.user.uid;
+
+                // 2. فحص المستخدمين لتحديد الرقم التسلسلي والداعي
+                const usersSnap = await getDocs(collection(db, "users"));
+                let uplineDocId = "";
+                let uplineName = "";
+                let maxUserNumber = 999;
+
+                usersSnap.forEach((d) => {
+                    const u = d.data();
+                    const uNum = Number(u.userNumber || 0);
+                    if(uNum >= 1000 && uNum > maxUserNumber) {
+                        maxUserNumber = uNum;
+                    }
+                    if(uNum === targetUserNumber) {
+                        uplineDocId = d.id;
+                        uplineName = u.fullName || 'متداول';
+                    }
+                });
+
+                // إذا لم يُعثر على الداعي، نتحقق إذا كان الكود المدخل هو كود التأسيس 1000
+                if(!uplineDocId && targetUserNumber !== 1000) {
+                    // حذف الحساب الذي أُنشئ للتو لأن الداعي غير صحيح
+                    await userCred.user.delete();
+                    showError(`❌ رقم حساب الداعي (${targetUserNumber}) غير صحيح أو غير موجود في المنصة!`);
+                    btn.disabled = false;
+                    btn.textContent = "إنشاء الحساب والانضمام ⚡";
+                    return;
+                }
+
+                const assignedUserNumber = maxUserNumber + 1;
+
+                const newUserData = {
+                    fullName: name,
+                    email: email,
+                    balance: 500,
+                    futuresBalance: 0,
+                    todayProfit: 0,
+                    userNumber: assignedUserNumber,
+                    referredByUid: uplineDocId || "",
+                    referredByName: uplineName || "الإدارة الأساسية",
+                    referredByNumber: targetUserNumber,
+                    activatedCodes: [false, false, false],
+                    lastCodeDate: "",
+                    myReferrals: [],
+                    createdAt: new Date()
+                };
+
+                await setDoc(doc(db, "users", newUserUid), newUserData);
+
+                // تحديث قائمة المدعوين عند الصديق الداعي إن وجد
+                if(uplineDocId) {
+                    await updateDoc(doc(db, "users", uplineDocId), {
+                        myReferrals: arrayUnion({
+                            uid: newUserUid,
+                            name: name,
+                            number: assignedUserNumber
+                        })
+                    });
+                }
+
+                window.location.href = 'index.html';
+
+            } catch(e) {
+                let errMsg = e.message;
+                if(e.code === 'auth/email-already-in-use') errMsg = 'هذا البريد الإلكتروني مسجل مسبقاً!';
+                if(e.code === 'auth/invalid-email') errMsg = 'صيغة البريد الإلكتروني غير صحيحة!';
+                showError('❌ ' + errMsg);
+                btn.disabled = false;
+                btn.textContent = "إنشاء الحساب والانضمام ⚡";
+            }
+        };
+
+        window.handleLogin = async function() {
+            const btn = document.getElementById('loginSubmitBtn');
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+
+            if(!email || !password) {
+                showError('❌ يرجى إدخال البريد الإلكتروني وكلمة المرور!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "جاري الدخول... ⏳";
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                window.location.href = 'index.html';
+            } catch(e) {
+                showError('❌ البريد الإلكتروني أو كلمة المرور غير صحيحة!');
+                btn.disabled = false;
+                btn.textContent = "دخول المنصة 🚀";
+            }
+        };
+    </script>
+</body>
+</html>

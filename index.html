@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArolX Pro - منصة التداول الاحترافية</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: #020617; color: #f8fafc; margin: 0; padding: 16px; padding-bottom: 100px; }
+        .client-container { max-width: 900px; margin: auto; }
+
+        .client-page-tab { display: none; }
+        .client-page-tab.active { display: block; }
+
+        /* شريط الأخبار الحية */
+        .live-ticker-bar { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; font-size: 11px; color: #38bdf8; display: flex; align-items: center; gap: 10px; overflow: hidden; white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .live-ticker-bar span.badge { background: #0284c7; color: #fff; padding: 2px 8px; border-radius: 6px; font-weight: bold; font-size: 10px; flex-shrink: 0; }
+        .live-ticker-container { overflow: hidden; width: 100%; position: relative; }
+        .live-ticker-text { display: inline-block; font-family: monospace; transition: all 0.5s ease; color: #34d399; }
+
+        .client-header { background: #0f172a; border: 1px solid #1e293b; border-radius: 18px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); flex-wrap: wrap; gap: 12px; }
+        .client-info h1 { margin: 0 0 4px 0; color: #38bdf8; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .client-info p { margin: 0; color: #94a3b8; font-size: 12px; }
+        
+        .header-actions { display: flex; align-items: center; gap: 8px; }
+        .bell-btn { background: #1e293b; border: 1px solid #334155; color: #38bdf8; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
+        .logout-btn { background: #ef4444; color: #fff; border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 12px; }
+
+        .home-hero-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid #334155; border-radius: 22px; padding: 24px 20px; text-align: center; margin-bottom: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .home-hero-card span { font-size: 13px; color: #94a3b8; display: block; margin-bottom: 6px; font-weight: 600; }
+        .home-hero-card strong { font-size: 34px; font-weight: 900; color: #34d399; font-family: monospace; display: block; direction: ltr; }
+        
+        .profit-today-card { background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%); border: 1px solid #059669; border-radius: 18px; padding: 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .profit-today-info h4 { margin: 0 0 4px 0; color: #34d399; font-size: 14px; }
+        .profit-today-info p { margin: 0; color: #94a3b8; font-size: 11px; }
+        .profit-today-val { font-size: 22px; font-weight: 900; color: #34d399; font-family: monospace; direction: ltr; }
+
+        .rank-tier-card { background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%); border: 1px solid #6366f1; border-radius: 18px; padding: 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .rank-info h4 { margin: 0 0 4px 0; color: #818cf8; font-size: 15px; }
+        .rank-badge-box { background: #6366f1; color: #fff; padding: 6px 14px; border-radius: 10px; font-weight: bold; font-size: 12px; font-family: monospace; }
+
+        .home-quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .home-action-btn { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 14px; color: #fff; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
+        .home-action-btn:hover { border-color: #38bdf8; background: #0a1118; }
+
+        .code-session-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 18px; padding: 18px; margin-bottom: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
+        .code-session-card.vip-card { border-color: #f59e0b; background: linear-gradient(135deg, #0f172a 0%, #1c1506 100%); }
+        .code-card-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .code-details h4 { margin: 0 0 4px 0; font-size: 15px; color: #fff; }
+        .code-details p { margin: 0; font-size: 12px; color: #94a3b8; }
+        .code-tag { font-family: monospace; background: #020617; border: 1px solid #334155; padding: 4px 10px; border-radius: 8px; color: #38bdf8; font-weight: bold; font-size: 13px; direction: ltr; display: inline-block; margin-top: 6px; }
+
+        .activate-code-btn { background: #059669; color: #fff; border: none; padding: 10px 18px; border-radius: 12px; font-weight: bold; font-size: 13px; cursor: pointer; transition: 0.2s; min-width: 155px; text-align: center; }
+        .activate-code-btn.vip-btn { background: #d97706; }
+        .activate-code-btn.completed { background: #1e293b; color: #34d399; border: 1px solid #059669; cursor: default; }
+        .activate-code-btn.locked { background: #1e293b; color: #64748b; border: 1px solid #334155; cursor: not-allowed; }
+        .activate-code-btn.expired { background: #1e293b; color: #ef4444; border: 1px solid #ef4444; cursor: not-allowed; }
+
+        /* شريط التنقل السفلي */
+        .client-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0a1118; display: flex; justify-content: space-around; padding: 10px 4px 14px 4px; border-top: 1px solid #1e293b; z-index: 1000; }
+        .client-nav-btn { background: none; border: none; color: #64748b; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; flex: 1; font-weight: bold; }
+        .client-nav-btn.active { color: #f59e0b; }
+        .client-nav-btn span.c-icon { font-size: 18px; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; z-index: 2000; backdrop-filter: blur(3px); }
+        .modal-overlay.open { display: block; }
+        .custom-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); background: #0f172a; border: 1px solid #334155; border-radius: 18px; padding: 24px; width: 90%; max-width: 400px; z-index: 3001; display: none; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+        .custom-modal.open { display: block; transform: translate(-50%, -50%) scale(1); }
+        .form-group { margin-bottom: 14px; text-align: right; }
+        .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px; color: #fff; font-size: 13px; outline: none; }
+        .modal-submit { width: 100%; background: #059669; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; margin-top: 10px; }
+
+        /* ستايل نافذة الدردشة والدعم */
+        .ai-chat-bubble { position: fixed; bottom: 80px; left: 20px; background: #0284c7; color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; z-index: 1500; }
+        .ai-chat-box { position: fixed; bottom: 135px; left: 20px; width: 320px; background: #0f172a; border: 1px solid #334155; border-radius: 16px; display: none; z-index: 2500; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
+        .ai-chat-box.open { display: block; }
+        .ai-chat-header { background: #020617; padding: 12px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; color: #38bdf8; font-weight: bold; font-size: 13px; }
+        .ai-chat-body { padding: 12px; font-size: 12px; color: #cbd5e1; max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .ai-msg { background: #1e293b; padding: 8px 12px; border-radius: 10px; max-width: 85%; line-height: 1.4; word-break: break-word; }
+        .ai-msg.user { background: #0284c7; color: #fff; align-self: flex-end; }
+        .ai-msg.admin { background: #059669; color: #fff; align-self: flex-start; }
+        .ai-chat-footer { padding: 8px; background: #020617; border-top: 1px solid #1e293b; display: flex; gap: 6px; }
+        .ai-chat-footer input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 6px 10px; color: #fff; font-size: 12px; outline: none; }
+        .ai-chat-footer button { background: #059669; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <!-- نافذة الدعم وأرشيف المحادثات -->
+    <div class="ai-chat-bubble" onclick="toggleAiChat()">🤖</div>
+    <div class="ai-chat-box" id="aiChatBox">
+        <div class="ai-chat-header">
+            <span>🎟️ تذاكر ودعم ArolX</span>
+            <button onclick="toggleAiChat()" style="background:none; border:none; color:#ef4444; cursor:pointer;">✕</button>
+        </div>
+        <div class="ai-chat-body" id="aiChatBody">
+            <div class="ai-msg">أهلاً بك! يتم تحميل سجلك وأرشيف المحادثات...</div>
+        </div>
+        <div class="ai-chat-footer">
+            <input type="text" id="aiUserInput" placeholder="اكتب تذكرتك أو استفسارك..." onkeypress="if(event.key==='Enter') sendSupportTicket()">
+            <button onclick="sendSupportTicket()">إرسال</button>
+        </div>
+    </div>
+
+    <!-- نافذة الإيداع -->
+    <div id="depositOverlay" class="modal-overlay" onclick="toggleModal('depositModal')"></div>
+    <div id="depositModal" class="custom-modal">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 15px;">
+            <h3 style="margin: 0; color: #34d399; font-size: 16px;">📥 إيداع USDT (TRC20)</h3>
+            <button onclick="toggleModal('depositModal')" style="background:none; border:none; color:#ef4444; font-size:18px; cursor:pointer;">✕</button>
+        </div>
+        <div class="form-group">
+            <label>عنوان المحفظة:</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <div style="flex: 1; background: #020617; border: 1px solid #334155; padding: 10px; border-radius: 10px; font-family: monospace; color: #34d399; font-size: 11px; word-break: break-all;" id="depositWalletText">
+                    TRB1TnqgFYSJTQeebmeb5sGVVcoKQL9MT6
+                </div>
+                <button onclick="copyDepositAddress()" style="background: #0284c7; color: #fff; border: none; padding: 10px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 12px; white-space: nowrap;">نسخ 📋</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>المبلغ ($)</label>
+            <input type="number" id="depositAmount" placeholder="مثال: 50">
+        </div>
+        <div class="form-group">
+            <label>رقم العملية (TXID)</label>
+            <input type="text" id="depositTxId" placeholder="TXID...">
+        </div>
+        <button class="modal-submit" onclick="submitDepositNotice()">إرسال الإشعار للإدارة 🚀</button>
+    </div>
+
+    <!-- نافذة السحب -->
+    <div id="withdrawOverlay" class="modal-overlay" onclick="toggleModal('withdrawModal')"></div>
+    <div id="withdrawModal" class="custom-modal">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 15px;">
+            <h3 style="margin: 0; color: #ef4444; font-size: 16px;">📤 طلب سحب أرباح (TRC20)</h3>
+            <button onclick="toggleModal('withdrawModal')" style="background:none; border:none; color:#ef4444; font-size:18px; cursor:pointer;">✕</button>
+        </div>
+        <div class="form-group">
+            <label>المبلغ ($)</label>
+            <input type="number" id="withdrawAmount" placeholder="المبلغ...">
+        </div>
+        <div class="form-group">
+            <label>عنوان محفظتك (يبدأ بـ T)</label>
+            <input type="text" id="withdrawWallet" placeholder="T...">
+        </div>
+        <div class="form-group">
+            <label>رمز الأمان (PIN)</label>
+            <input type="password" id="withdrawPin" maxlength="4" placeholder="4 أرقام...">
+        </div>
+        <button class="modal-submit" style="background: #ef4444;" onclick="submitWithdrawRequest()">تقديم طلب السحب 💸</button>
+    </div>
+
+    <!-- نافذة التحويل الداخلي -->
+    <div id="transferOverlay" class="modal-overlay" onclick="toggleModal('transferModal')"></div>
+    <div id="transferModal" class="custom-modal">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 15px;">
+            <h3 style="margin: 0; color: #38bdf8; font-size: 16px;">🔄 التحويل الداخلي</h3>
+            <button onclick="toggleModal('transferModal')" style="background:none; border:none; color:#ef4444; cursor:pointer;">✕</button>
+        </div>
+        <div class="form-group">
+            <label>الاتجاه</label>
+            <select id="transferDirection">
+                <option value="spotToFutures">من السبوت ➔ الفيوتشر</option>
+                <option value="futuresToSpot">من الفيوتشر ➔ السبوت</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>المبلغ ($)</label>
+            <input type="number" id="transferAmount" placeholder="المبلغ...">
+        </div>
+        <button class="modal-submit" style="background: #0284c7;" onclick="executeInternalTransfer()">تأكيد التحويل</button>
+    </div>
+
+    <div class="client-container">
+        <!-- شريط الأخبار الحية -->
+        <div class="live-ticker-bar">
+            <span class="badge">أخبار حية ⚡</span>
+            <div class="live-ticker-container">
+                <span class="live-ticker-text" id="liveTickerText">⚡ جاري تحميل الأخبار والعمليات الحية...</span>
+            </div>
+        </div>
+
+        <!-- رأس لوحة المتداول -->
+        <div class="client-header">
+            <div class="client-info">
+                <h1 id="clientName">مرحباً بك، متداول</h1>
+                <p>رقم الحساب: <span id="clientNumber" style="color: #38bdf8; font-family: monospace;">1000</span></p>
+            </div>
+            <div class="header-actions">
+                <button class="bell-btn" onclick="toggleModal('depositModal')" title="إيداع">📥</button>
+                <button class="logout-btn" onclick="handleLogout()">خروج 🚪</button>
+            </div>
+        </div>
+
+        <!-- 1. تبويب الرئيسية -->
+        <div id="tabHome" class="client-page-tab active">
+            <div class="home-hero-card">
+                <span>رصيد الحساب المتاح للتداول</span>
+                <strong id="clientBalance">$500.00</strong>
+            </div>
+
+            <div class="profit-today-card">
+                <div class="profit-today-info">
+                    <h4>💰 أرباح اليوم التراكمية</h4>
+                    <p>خطة 25 يوماً للوصول لمضاعفة رأس المال (500$ ربح إضافي)</p>
+                </div>
+                <div class="profit-today-val" id="todayProfitVal">$0.00</div>
+            </div>
+
+            <div class="rank-tier-card">
+                <div class="rank-info">
+                    <h4 id="userRankTitle">🌟 رتبة المتداول: خطة التدوير التراكمي (25 يوماً)</h4>
+                    <p id="userRankDesc">تفعيل الأكواد الثلاثة يومياً في مواعيدها يضمن إضافة الأرباح للمحفظة</p>
+                </div>
+                <div class="rank-badge-box" id="rankBadgeBox">VIP 1</div>
+            </div>
+
+            <div class="home-quick-actions">
+                <button class="home-action-btn" style="color: #34d399;" onclick="toggleModal('depositModal')">
+                    <span>📥</span> إيداع USDT
+                </button>
+                <button class="home-action-btn" style="color: #ef4444;" onclick="toggleModal('withdrawModal')">
+                    <span>📤</span> سحب أرباح
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. تبويب الإدارة -->
+        <div id="tabTrading" class="client-page-tab">
+            <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 18px; padding: 20px;">
+                <h3 style="color: #38bdf8; margin-top: 0; font-size: 16px;">📢 نظام الأكواد والربح التراكمي (25 يوماً)</h3>
+                <p style="color: #cbd5e1; font-size: 12px; line-height: 1.6;">
+                    - نظام الأكواد الثلاثة اليومية يوزع الأرباح بنسب دقيقة لتصل إلى مضاعفة الرصيد خلال 25 يوماً.<br>
+                    - مواعيد الأكواد وثباتها:<br>
+                    &nbsp;&nbsp;• الكود الأول (جلسة الظهر): الساعة **2:00 ظهراً**.<br>
+                    &nbsp;&nbsp;• الكود الثاني (جلسة المغرب): الساعة **6:00 مساءً**.<br>
+                    &nbsp;&nbsp;• الكود الثالث (جلسة الختام الكبرى): الساعة **8:00 مساءً**.<br>
+                    - **مهم جداً:** مهلة تفعيل كل كود **20 دقيقة فقط** من وقت افتتاحه، وإذا انتهت المهلة ولم تفعله يتم إبطاله.
+                </p>
+            </div>
+        </div>
+
+        <!-- 3. تبويب دعوات الأصدقاء -->
+        <div id="tabReferrals" class="client-page-tab">
+            <div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border: 1px solid #6366f1; border-radius: 18px; padding: 20px; margin-bottom: 16px;">
+                <h3 style="color: #818cf8; margin-top: 0; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+                    <span>👤</span> الصديق الذي قمت بالتسجيل من طرفه
+                </h3>
+                <div id="uplineInfo" style="background: #020617; padding: 12px; border-radius: 10px; font-size: 13px; color: #cbd5e1; margin-top: 10px;">
+                    جاري التحقق...
+                </div>
+            </div>
+
+            <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 18px; padding: 20px;">
+                <h3 style="color: #34d399; margin-top: 0; font-size: 15px; display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+                    <span>🎁</span> الأصدقاء الذين دعيتهم أنت
+                </h3>
+                <p style="color: #94a3b8; font-size: 12px; margin-bottom: 12px;">قائمة الأشخاص الذين انضموا إلى المنصة عبر حسابك:</p>
+                <div id="referralsListContainer" style="background: #020617; border: 1px solid #1e293b; border-radius: 12px; padding: 14px; max-height: 220px; overflow-y: auto; font-size: 13px; color: #34d399;">
+                    جاري تحميل قائمة المدعوين...
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. تبويب الأكواد اليومية -->
+        <div id="tabCode" class="client-page-tab">
+            <h3 style="color: #f59e0b; font-size: 15px; margin-top: 0;">🎟️ الأكواد اليومية التراكمية (3 جلسات)</h3>
+            <p style="color: #94a3b8; font-size: 12px; margin-bottom: 16px;">تفتح الأكواد في مواعيدها المحددة بدقة، ومهلة تفعيل كل كود 20 دقيقة:</p>
+
+            <div class="code-session-card">
+                <div class="code-card-top">
+                    <div class="code-details">
+                        <h4>🔹 الكود (1) - جلسة الظهر (الساعة 2:00 ظهراً)</h4>
+                        <p>الحالة / المتبقي: <strong id="timer0" style="color: #38bdf8;">في انتظار الموعد (2:00 م)</strong></p>
+                        <span class="code-tag">ARX-1400</span>
+                    </div>
+                    <button class="activate-code-btn locked" id="codeBtn0" disabled onclick="activateCode(0)">في انتظار الموعد ⏳</button>
+                </div>
+            </div>
+
+            <div class="code-session-card">
+                <div class="code-card-top">
+                    <div class="code-details">
+                        <h4>🔹 الكود (2) - جلسة المغرب (الساعة 6:00 مساءً)</h4>
+                        <p>الحالة / المتبقي: <strong id="timer1" style="color: #38bdf8;">في انتظار الموعد (6:00 م)</strong></p>
+                        <span class="code-tag">ARX-1800</span>
+                    </div>
+                    <button class="activate-code-btn locked" id="codeBtn1" disabled onclick="activateCode(1)">في انتظار الموعد ⏳</button>
+                </div>
+            </div>
+
+            <div class="code-session-card vip-card">
+                <div class="code-card-top">
+                    <div class="code-details">
+                        <h4 style="color: #f59e0b;">👑 الكود (3) - جلسة الختام (الساعة 8:00 مساءً)</h4>
+                        <p>الحالة / المتبقي: <strong id="timer2" style="color: #f59e0b;">في انتظار الموعد (8:00 م)</strong></p>
+                        <span class="code-tag">VIP-2000</span>
+                    </div>
+                    <button class="activate-code-btn locked" id="codeBtn2" disabled onclick="activateCode(2)">في انتظار الموعد ⏳</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. تبويب المحفظة -->
+        <div id="tabWallet" class="client-page-tab">
+            <div class="home-hero-card" style="border-color: #38bdf8;">
+                <span>إجمالي أموال المنصة الكلي</span>
+                <strong id="totalAssetsSum" style="color: #38bdf8;">$500.00</strong>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 18px; text-align: center;">
+                    <span style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px;">محفظة السبوت</span>
+                    <strong id="spotBalanceVal" style="font-size: 20px; color: #34d399; font-family: monospace;">$500.00</strong>
+                </div>
+                <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 18px; text-align: center;">
+                    <span style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px;">محفظة الفيوتشر</span>
+                    <strong id="futuresBalanceVal" style="font-size: 20px; color: #38bdf8; font-family: monospace;">$0.00</strong>
+                </div>
+            </div>
+            <button class="home-action-btn" style="width: 100%; color: #38bdf8; margin-bottom: 16px; background: #0f172a;" onclick="toggleModal('transferModal')">
+                <span>🔄</span> التحويل بين المحافظ
+            </button>
+        </div>
+
+        <!-- 6. تبويب الملف الشخصي (مع زر النسخ لكود الدعوة ARX-1000 وانت طالع) -->
+        <div id="tabProfile" class="client-page-tab">
+            <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid #38bdf8; border-radius: 18px; padding: 20px; margin-bottom: 16px;">
+                <h3 style="color: #38bdf8; margin-top: 0; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+                    <span>👤</span> رقم حسابك وكود دعوة الأصدقاء
+                </h3>
+                <p style="color: #94a3b8; font-size: 12px; margin-bottom: 12px;">انسخ كود حسابك وأعطه لأصدقائك ليسجلوه عند إنشاء حساباتهم:</p>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <div id="profileUserCodeDisplay" style="flex: 1; background: #020617; border: 1px solid #334155; padding: 10px; border-radius: 10px; font-family: monospace; color: #34d399; font-size: 14px; text-align: center; font-weight: bold;">
+                        ARX-1000
+                    </div>
+                    <button onclick="copyMyReferralCode()" style="background: #059669; color: #fff; border: none; padding: 10px 16px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 12px; white-space: nowrap;">نسخ الكود 📋</button>
+                </div>
+            </div>
+
+            <!-- بطاقة رمز الأمان PIN -->
+            <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 18px; padding: 20px; margin-bottom: 16px;">
+                <h3 style="color: #f59e0b; margin-top: 0; font-size: 15px;">🔐 رمز الأمان للسحب (PIN)</h3>
+                <p style="color: #94a3b8; font-size: 12px; margin-bottom: 10px;">أدخل 4 أرقام سرية لتأمين عمليات سحب الأرباح:</p>
+                <div class="form-group">
+                    <input type="password" id="setPinInput" maxlength="4" placeholder="****" style="text-align: center; letter-spacing: 8px; font-size: 18px;">
+                </div>
+                <button class="modal-submit" onclick="saveUserPin()">حفظ رمز الأمان الحصري</button>
+            </div>
+
+            <!-- بطاقة خيارات إضافية للملف الشخصي -->
+            <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 18px; padding: 20px;">
+                <h3 style="color: #818cf8; margin-top: 0; font-size: 15px;">⚙️ إعدادات الحساب والخصوصية</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #020617; border-radius: 10px; font-size: 13px;">
+                        <span>حالة الحساب</span>
+                        <strong style="color: #34d399;">نشط وموثق آمن ✓</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #020617; border-radius: 10px; font-size: 13px;">
+                        <span>شبكة المعاملات الرسمية</span>
+                        <strong style="color: #38bdf8;">USDT - TRC20</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- شريط التنقل السفلي -->
+    <div class="client-bottom-nav">
+        <button class="client-nav-btn active" onclick="switchClientTab('tabHome', this)"><span class="c-icon">🏠</span><span>الرئيسية</span></button>
+        <button class="client-nav-btn" onclick="switchClientTab('tabTrading', this)"><span class="c-icon">📢</span><span>الإدارة</span></button>
+        <button class="client-nav-btn" onclick="switchClientTab('tabReferrals', this)"><span class="c-icon">🎁</span><span>دعوات</span></button>
+        <button class="client-nav-btn" onclick="switchClientTab('tabCode', this)"><span class="c-icon">🏷️</span><span>الكود</span></button>
+        <button class="client-nav-btn" onclick="switchClientTab('tabWallet', this)"><span class="c-icon">💳</span><span>المحفظة</span></button>
+        <button class="client-nav-btn" onclick="switchClientTab('tabProfile', this)"><span class="c-icon">👤</span><span>الملف</span></button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyB7kCAWBjr_Pin9izKlkcTqA1GEEKGSZsA",
+          authDomain: "tradingapp-93608.firebaseapp.com",
+          projectId: "tradingapp-93608",
+          storageBucket: "tradingapp-93608.firebasestorage.app",
+          messagingSenderId: "1037136476622",
+          appId: "1:1037136476622:web:573988924b408bcef6539f",
+          measurementId: "G-3BSEMM7PDS"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUserData = null;
+        let currentAuthUser = null;
+
+        let codeStates = [
+            { targetHour: 14, targetMinute: 0, durationSec: 20 * 60 },
+            { targetHour: 18, targetMinute: 0, durationSec: 20 * 60 },
+            { targetHour: 20, targetMinute: 0, durationSec: 20 * 60 }
+        ];
+
+        const codeProfitRatios = [0.0105, 0.0105, 0.011]; 
+
+        const tickerMessages = [
+            "⚡ مواعيد الجلسات: 2:00 ظهراً (الأول) | 6:00 مغرباً (الثاني) | 8:00 مساءً (الختام)",
+            "🚀 كل كود يضيف نسبته التراكمية مباشرة للمحفظة ضمن مهلة 20 دقيقة فقط",
+            "💎 تداول آمن ومستقر عبر منصة ArolX Pro الاحترافية"
+        ];
+
+        function startLiveTicker() {
+            const tickerEl = document.getElementById('liveTickerText');
+            if (!tickerEl) return;
+            let index = 0;
+            setInterval(() => {
+                index = (index + 1) % tickerMessages.length;
+                tickerEl.textContent = tickerMessages[index];
+            }, 4000);
+            tickerEl.textContent = tickerMessages[0];
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentAuthUser = user;
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    currentUserData = userSnap.data();
+                } else {
+                    currentUserData = {
+                        fullName: "متداول",
+                        balance: 500,
+                        futuresBalance: 0,
+                        todayProfit: 0,
+                        userNumber: 1000, // البدء من الرقم 1000
+                        lastCodeDate: "",
+                        activatedCodes: [false, false, false],
+                        referredByName: "",
+                        referredByNumber: "",
+                        myReferrals: []
+                    };
+                    await setDoc(userRef, currentUserData);
+                }
+
+                const todayStr = new Date().toDateString();
+                if (currentUserData.lastCodeDate !== todayStr) {
+                    currentUserData.lastCodeDate = todayStr;
+                    currentUserData.activatedCodes = [false, false, false];
+                    currentUserData.todayProfit = 0;
+                    await updateDoc(userRef, {
+                        lastCodeDate: todayStr,
+                        activatedCodes: [false, false, false],
+                        todayProfit: 0
+                    });
+                }
+
+                updateUIValues();
+                startLiveTicker();
+                initCodeTimingEngine();
+            } else {
+                window.location.href = 'auth.html';
+            }
+        });
+
+        function updateUIValues() {
+            const userNum = Number(currentUserData.userNumber || 1000);
+            document.getElementById('clientName').textContent = `مرحباً بك، ${currentUserData.fullName || 'متداول'}`;
+            document.getElementById('clientNumber').textContent = userNum;
+            
+            const spot = Number(currentUserData.balance || 500);
+            const futures = Number(currentUserData.futuresBalance || 0);
+            const todayProfit = Number(currentUserData.todayProfit || 0);
+
+            document.getElementById('clientBalance').textContent = `$${spot.toFixed(2)}`;
+            document.getElementById('spotBalanceVal').textContent = `$${spot.toFixed(2)}`;
+            document.getElementById('futuresBalanceVal').textContent = `$${futures.toFixed(2)}`;
+            document.getElementById('todayProfitVal').textContent = `$${todayProfit.toFixed(2)}`;
+            document.getElementById('totalAssetsSum').textContent = `$${(spot + futures).toFixed(2)}`;
+            
+            // تحديث عرض الكود في الملف الشخصي بالشكل ARX-1000 وانت طالع
+            const profileDisplay = document.getElementById('profileUserCodeDisplay');
+            if(profileDisplay) {
+                profileDisplay.textContent = `ARX-${userNum}`;
+            }
+            
+            updateReferralsUIExtended();
+        }
+
+        window.copyMyReferralCode = function() {
+            const userNum = Number(currentUserData.userNumber || 1000);
+            const codeToCopy = `ARX-${userNum}`;
+            navigator.clipboard.writeText(codeToCopy).then(() => {
+                alert(`✅ تم نسخ كود الدعوة (${codeToCopy}) بنجاح! اعطه لصديقك.`);
+            }).catch(err => {
+                console.error('فشل النسخ: ', err);
+            });
+        };
+
+        function updateReferralsUIExtended() {
+            const uplineEl = document.getElementById('uplineInfo');
+            if (uplineEl) {
+                if (currentUserData.referredByName) {
+                    uplineEl.innerHTML = `🌟 أنت مسجل رسمياً من طرف الصديق: <strong style="color: #38bdf8; font-size: 14px;">${currentUserData.referredByName}</strong> (رقم الحساب: ${currentUserData.referredByNumber})`;
+                } else {
+                    uplineEl.innerHTML = `أنت مسجل مباشرة في المنصة.`;
+                }
+            }
+
+            const listContainer = document.getElementById('referralsListContainer');
+            if (listContainer) {
+                const myReferrals = currentUserData.myReferrals || [];
+                if (myReferrals.length === 0) {
+                    listContainer.innerHTML = `<span style="color: #94a3b8;">لا يوجد أصدقاء مدعوون من طرفك حتى الآن. شارك كودك معهم!</span>`;
+                } else {
+                    let html = '<ul style="margin:0; padding-right: 18px; line-height: 2;">';
+                    myReferrals.forEach(ref => {
+                        html += `<li>👤 <strong style="color: #fff;">${ref.name}</strong> (رقم الحساب: <span style="color: #38bdf8; font-family: monospace;">ARX-${ref.number}</span>)</li>`;
+                    });
+                    html += '</ul>';
+                    listContainer.innerHTML = html;
+                }
+            }
+        }
+
+        function initCodeTimingEngine() {
+            setInterval(() => {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+                const currentSecond = now.getSeconds();
+                const currentTimeInSec = currentHour * 3600 + currentMinute * 60 + currentSecond;
+
+                for (let i = 0; i < 3; i++) {
+                    const targetSec = codeStates[i].targetHour * 3600 + codeStates[i].targetMinute * 60;
+                    const expiryLimitSec = targetSec + codeStates[i].durationSec;
+
+                    const timerEl = document.getElementById(`timer${i}`);
+                    const btnEl = document.getElementById(`codeBtn${i}`);
+                    const isActivated = currentUserData.activatedCodes && currentUserData.activatedCodes[i];
+
+                    if (isActivated) {
+                        timerEl.textContent = "تمت إضافة الأرباح بنجاح ✅";
+                        timerEl.style.color = "#34d399";
+                        btnEl.className = "activate-code-btn completed";
+                        btnEl.textContent = "✅ تم التفعيل";
+                        btnEl.disabled = true;
+                        continue;
+                    }
+
+                    if (currentTimeInSec < targetSec) {
+                        let diff = targetSec - currentTimeInSec;
+                        let h = Math.floor(diff / 3600);
+                        let m = Math.floor((diff % 3600) / 60);
+                        let s = diff % 60;
+                        timerEl.textContent = `يفتح بعد: ${h > 0 ? h + 'س ' : ''}${m}د ${s}ث`;
+                        timerEl.style.color = "#38bdf8";
+                        btnEl.className = "activate-code-btn locked";
+                        btnEl.textContent = "في انتظار الموعد ⏳";
+                        btnEl.disabled = true;
+                    } 
+                    else if (currentTimeInSec >= targetSec && currentTimeInSec <= expiryLimitSec) {
+                        let remaining = expiryLimitSec - currentTimeInSec;
+                        let rmMin = Math.floor(remaining / 60);
+                        let rmSec = remaining % 60;
+                        timerEl.textContent = `مفتوح! متبقي: ${rmMin}:${rmSec.toString().padStart(2, '0')} دقيقة`;
+                        timerEl.style.color = "#f59e0b";
+                        btnEl.className = i === 2 ? "activate-code-btn vip-btn" : "activate-code-btn";
+                        btnEl.textContent = i === 2 ? "تفعيل الكود (3) 👑" : `تفعيل الكود (${i+1}) 🚀`;
+                        btnEl.disabled = false;
+                    } 
+                    else {
+                        timerEl.textContent = "❌ انتهت المهلة (تم الإبطال)";
+                        timerEl.style.color = "#ef4444";
+                        btnEl.className = "activate-code-btn expired";
+                        btnEl.textContent = "❌ فاتك الكود";
+                        btnEl.disabled = true;
+                    }
+                }
+            }, 1000);
+        }
+
+        window.activateCode = async function(index) {
+            if (!currentUserData.activatedCodes) currentUserData.activatedCodes = [false, false, false];
+            if (currentUserData.activatedCodes[index]) return;
+
+            currentUserData.activatedCodes[index] = true;
+
+            let currentSpot = Number(currentUserData.balance || 500);
+            let sessionProfit = currentSpot * codeProfitRatios[index];
+
+            currentSpot += sessionProfit;
+            let currentTodayProfit = Number(currentUserData.todayProfit || 0) + sessionProfit;
+            
+            currentUserData.balance = currentSpot;
+            currentUserData.todayProfit = currentTodayProfit;
+
+            alert(`✅ تم تفعيل الكود (${index + 1}) بنجاح وإضافة أرباح بقيمة $${sessionProfit.toFixed(2)} مباشرة لمحفظتك بشكل تراكمي!`);
+
+            try {
+                await updateDoc(doc(db, "users", currentAuthUser.uid), {
+                    balance: currentUserData.balance,
+                    todayProfit: currentUserData.todayProfit,
+                    activatedCodes: currentUserData.activatedCodes
+                });
+                updateUIValues();
+            } catch(e) {
+                console.error(e);
+            }
+        };
+
+        window.switchClientTab = function(tabId, btnEl) {
+            document.querySelectorAll('.client-page-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.client-nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btnEl.classList.add('active');
+        };
+
+        window.toggleModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            const overlay = document.getElementById(modalId.replace('Modal', 'Overlay'));
+            if (modal) modal.classList.toggle('open');
+            if (overlay) overlay.classList.toggle('open');
+        };
+
+        window.copyDepositAddress = function() {
+            const walletText = document.getElementById('depositWalletText').textContent.trim();
+            navigator.clipboard.writeText(walletText).then(() => {
+                alert('✅ تم نسخ عنوان المحفظة بنجاح!');
+            });
+        };
+
+        window.submitDepositNotice = async function() {
+            const amount = Number(document.getElementById('depositAmount').value);
+            const txId = document.getElementById('depositTxId').value.trim();
+            if (!amount || amount <= 0 || !txId) { alert('أدخل المبلغ ورقم TXID بشكل صحيح!'); return; }
+            try {
+                await addDoc(collection(db, "transactions"), {
+                    userId: currentAuthUser.uid,
+                    userName: currentUserData.fullName || 'متداول',
+                    type: 'deposit',
+                    amount: amount,
+                    txId: txId,
+                    status: 'pending',
+                    createdAt: new Date()
+                });
+                alert('🚀 تم إرسال إشعار الحوالة للإدارة.');
+                toggleModal('depositModal');
+            } catch(e) { alert('خطأ: ' + e.message); }
+        };
+
+        window.submitWithdrawRequest = async function() {
+            const amount = Number(document.getElementById('withdrawAmount').value);
+            const wallet = document.getElementById('withdrawWallet').value.trim();
+            const pin = document.getElementById('withdrawPin').value.trim();
+            if (!amount || amount <= 0 || !wallet.startsWith('T')) { alert('تأكد من المبلغ والمحفظة (تبدأ بـ T)!'); return; }
+            if (currentUserData.pinCode && currentUserData.pinCode !== pin) { alert('❌ رمز PIN غير صحيح!'); return; }
+            try {
+                await addDoc(collection(db, "transactions"), {
+                    userId: currentAuthUser.uid,
+                    userName: currentUserData.fullName || 'متداول',
+                    type: 'withdrawal',
+                    amount: amount,
+                    walletAddress: wallet,
+                    network: 'TRC20',
+                    status: 'pending',
+                    createdAt: new Date()
+                });
+                alert('✅ تم إرسال طلب السحب للإدارة.');
+                toggleModal('withdrawModal');
+            } catch(e) { alert('خطأ: ' + e.message); }
+        };
+
+        window.executeInternalTransfer = async function() {
+            const direction = document.getElementById('transferDirection').value;
+            const amount = Number(document.getElementById('transferAmount').value);
+            if(!amount || amount <= 0) { alert('المبلغ غير صحيح!'); return; }
+            let spot = Number(currentUserData.balance || 500);
+            let futures = Number(currentUserData.futuresBalance || 0);
+            if(direction === 'spotToFutures') {
+                if(spot < amount) { alert('الرصيد غير كافٍ!'); return; }
+                spot -= amount; futures += amount;
+            } else {
+                if(futures < amount) { alert('الرصيد غير كافٍ!'); return; }
+                futures -= amount; spot += amount;
+            }
+            try {
+                await updateDoc(doc(db, "users", currentAuthUser.uid), { balance: spot, futuresBalance: futures });
+                currentUserData.balance = spot;
+                currentUserData.futuresBalance = futures;
+                updateUIValues();
+                alert('✅ تم التحويل بنجاح!');
+                toggleModal('transferModal');
+            } catch(e) { alert('خطأ: ' + e.message); }
+        };
+
+        window.saveUserPin = async function() {
+            const pin = document.getElementById('setPinInput').value.trim();
+            if (pin.length !== 4) { alert('رمز PIN يجب أن يكون 4 أرقام!'); return; }
+            try {
+                await updateDoc(doc(db, "users", currentAuthUser.uid), { pinCode: pin });
+                currentUserData.pinCode = pin;
+                alert('✅ تم حفظ رمز PIN بنجاح!');
+            } catch(e) { alert('خطأ: ' + e.message); }
+        };
+
+        window.toggleAiChat = function() {
+            const box = document.getElementById('aiChatBox');
+            box.classList.toggle('open');
+            if(box.classList.contains('open') && currentAuthUser) {
+                loadUserChatHistory();
+            }
+        };
+
+        async function loadUserChatHistory() {
+            const body = document.getElementById('aiChatBody');
+            if(!currentAuthUser) return;
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "tickets"));
+                let chatHistory = [];
+
+                querySnapshot.forEach((docSnap) => {
+                    const t = docSnap.data();
+                    if(t.userId === currentAuthUser.uid) {
+                        if(t.message && t.message !== "رد إداري أرشيفي") {
+                            chatHistory.push({ text: t.message, sender: 'user', time: t.createdAt });
+                        }
+                        if(t.adminReply) {
+                            chatHistory.push({ text: t.adminReply, sender: 'admin', time: t.createdAt });
+                        }
+                    }
+                });
+
+                chatHistory.sort((a, b) => {
+                    const timeA = a.time?.toDate ? a.time.toDate() : new Date(0);
+                    const timeB = b.time?.toDate ? b.time.toDate() : new Date(0);
+                    return timeA - timeB;
+                });
+
+                if(chatHistory.length === 0) {
+                    body.innerHTML = `<div class="ai-msg">أهلاً بك! اكتب استفسارك هنا وسيرد عليك فريق الدعم.</div>`;
+                } else {
+                    let html = '';
+                    chatHistory.forEach(msg => {
+                        if(msg.sender === 'user') {
+                            html += `<div class="ai-msg user">${msg.text}</div>`;
+                        } else {
+                            html += `<div class="ai-msg admin"><b>الدعم الفني:</b> ${msg.text}</div>`;
+                        }
+                    });
+                    body.innerHTML = html;
+                }
+                body.scrollTop = body.scrollHeight;
+            } catch(e) { console.error(e); }
+        }
+
+        window.sendSupportTicket = async function() {
+            const input = document.getElementById('aiUserInput');
+            const text = input.value.trim();
+            if(!text || !currentAuthUser) return;
+
+            input.value = '';
+            try {
+                await addDoc(collection(db, "tickets"), {
+                    userId: currentAuthUser.uid,
+                    userName: currentUserData.fullName || 'متداول',
+                    message: text,
+                    adminReply: "",
+                    status: 'open',
+                    createdAt: new Date()
+                });
+                loadUserChatHistory();
+            } catch(e) { alert('خطأ: ' + e.message); }
+        };
+
+        window.handleLogout = async function() {
+            await signOut(auth);
+            window.location.href = 'auth.html';
+        };
+    </script>
+</body>
+</html>
